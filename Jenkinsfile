@@ -72,7 +72,9 @@ pipeline {
                 sh "docker login ghcr.io -u ${GITHUB_CRED_USR} -p ${GITHUB_CRED_PSW}"
                 sh "docker pull ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
 
-                sh(script: "docker run --name ${APP_NAME} -d -p 5000:5000 ghcr.io/${NAMESPACE}/${IMAGE_NAME}")
+                sh returnStatus: true, script: "docker stop ${APP_NAME}"
+                sh returnStatus: true, script: "docker rm ${APP_NAME} -f"
+                sh "docker run --name ${APP_NAME} -d -p 5000:5000 ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
             }
         }
 
