@@ -62,7 +62,8 @@ pipeline {
                 sh "docker inspect ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
                 sh "docker inspect ghcr.io/${NAMESPACE}/${IMAGE_NAME}:${BUILD_NUMBER}"
 
-                sh "docker image prune -a -f"
+                sh "docker rmi ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
+                sh "docker rmi ghcr.io/${NAMESPACE}/${IMAGE_NAME}:${BUILD_NUMBER}"
             }
         }
 
