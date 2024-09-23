@@ -1,15 +1,14 @@
-def unitStatus
-def robotStatus
-
 pipeline {
     agent { label 'build-agent' }
     environment {
         APP_NAME = "web-api"
-        IMAGE_NAME = 'spdx:${BUILD_NUMBER}'
+        IMAGE_NAME = 'spdx'
         ROBOT_REPO = 'https://github.com/CE-RELATIONSHIP/jenkins-automate-testing'
         ROBOT_BRANCH = 'main'
         MAIN_REPO = 'https://https://github.com/CE-RELATIONSHIP/jenkins-assignment/'
         MAIN_BRANCH = 'jenkins-pipeline-peqch-only'
+        NAMESPACE = 'ce-relationship'
+        GITHUB_CRED = credentials('github-registry')
     }
 
     stages {
@@ -32,14 +31,8 @@ pipeline {
 
                 ////// unit test running batch  //////
                 script {
-                    def output = sh(
-                        returnStatus: true,
-                        returnStdout: true, 
-                        script: "docker exec ${APP_NAME} sh -c 'python -m unit_test -v;'"
-                        )
-
                     // if not OK
-                    if (output != "0") {
+                    if (sh(script: "docker exec ${APP_NAME} sh -c 'python -m unit_test -v; exit;'", returnStatus: true)) {
                         error("Build terminated: failed the unit test'.")
                     }
                 }
@@ -47,9 +40,21 @@ pipeline {
             }
         }
 
-        stage("Deliver") {
+        stage("Release") {
             steps {
-                sh "echo Deliver"
+                sh "docker tag ${IMAGE_NAME} ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
+                sh "docker tag ${IMAGE_NAME} ghcr.io/${NAMESPACE}/${IMAGE_NAME}:${BUILD_NUMBER}"
+
+                sh "docker login ghcr.io -u ${GITHUB_CRED_USR} -p ${GITHUB_CRED_PSW}"
+
+                sh "docker push ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
+                sh "docker push ghcr.io/${NAMESPACE}/${IMAGE_NAME}:${BUILD_NUMBER}"
+
+                sh "docker inspect ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
+                sh "docker inspect ghcr.io/${NAMESPACE}/${IMAGE_NAME}:${BUILD_NUMBER}"
+
+                sh "docker rmi ghcr.io/${NAMESPACE}/${IMAGE_NAME}"
+                sh "docker rmi ghcr.io/${NAMESPACE}/${IMAGE_NAME}:${BUILD_NUMBER}"
             }
         }
 
