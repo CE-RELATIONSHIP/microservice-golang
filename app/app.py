@@ -9,7 +9,7 @@ class HttpMethod():
 
 @app.route('/getcode', methods=[HttpMethod.GET])
 def get_code():
-    res = 'Random number or message test merge'
+    res = 'Random number or message test 3'
     return jsonify(res)
 
 @app.route('/plus/<num1>/<num2>', methods=[HttpMethod.GET])
